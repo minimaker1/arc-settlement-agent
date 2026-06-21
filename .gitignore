@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 .env
+circle_recovery_file.dat
 .venv/
 venv/
 *.csv
