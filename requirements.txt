@@ -1,0 +1,4 @@
+requests>=2.31
+python-dotenv>=1.0
+# optional: real-world EUR/USD reference for the FX oracle
+yfinance>=0.2.40
