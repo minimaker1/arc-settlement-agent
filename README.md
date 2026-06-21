@@ -50,12 +50,28 @@ flowchart LR
 - **StableFX** *(conceptual)* — multi-currency routing target once access is
   granted; the agent's route logic is built to plug into it.
 
-## Setup
+## Live proof (Arc testnet)
+
+A real, agent-executed USDC settlement (1 USDC, FX-aware route, memo attached),
+signed server-side by a Circle Developer-Controlled Wallet:
+
+> tx `0xbeb17f3513914f502012c81fcb4e7252464e6306b8f8a6e5238f9d302691234f`
+> https://testnet.arcscan.app/tx/0xbeb17f3513914f502012c81fcb4e7252464e6306b8f8a6e5238f9d302691234f
+
+The on-chain FX leg uses a clearly-labeled **simulated** rate until a live Arc
+USDC/EURC pool address is wired (set `SYNTHRA_USDC_EURC_POOL`); the settlement
+leg is fully real.
+
+## Setup & run
 
 ```bash
 pip install -r requirements.txt
-cp .env.template .env   # fill Circle keys to enable real testnet settlement
-python agent.py         # runs end-to-end (dry-run); reads live Arc testnet
+cp .env.template .env          # add Circle API key to enable real settlement
+
+python agent.py                # CLI: end-to-end plan (dry-run), live Arc testnet
+python web.py                  # Web UI at http://localhost:8000 (frontend+backend)
+python circle_setup.py         # one-time: provision entity secret + ARC-TESTNET wallet
+python demo_settle.py          # real 1-USDC settlement demo (moves testnet funds)
 ```
 
 Arc testnet reference: RPC `https://rpc.testnet.arc.network`, chainId `5042002`,
