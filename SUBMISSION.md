@@ -37,7 +37,7 @@ https://challenges.ignyte.ae/competition/4B436318-C737-F111-9A49-6045BD14D400
 > <PASTE VIDEO LINK>   (script in VIDEO_SCRIPT.md; ~2.5 min)
 
 **GitHub / code repository**
-> <PASTE REPO LINK>   (see TOMORROW.md for one-command publish; .env is gitignored)
+> https://github.com/minimaker1/arc-settlement-agent   (public; .env gitignored)
 
 **Demo application URL**
 > Runs locally: `python web.py` → http://localhost:8000  (shown in the video).
