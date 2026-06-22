@@ -9,11 +9,12 @@ cd ~/arc-settlement-agent
 ```
 Click "Plan settlement" — you should see FX basis, route, dry-run receipt.
 
-## 1. (~10 min) Record the demo video  ← the only time-consuming part
-- Follow **VIDEO_SCRIPT.md** (~2.5 min, beat-by-beat voiceover).
-- Screen-record: the web UI + the real tx on arcscan
-  (https://testnet.arcscan.app/tx/0xbeb17f3513914f502012c81fcb4e7252464e6306b8f8a6e5238f9d302691234f).
-- Upload to YouTube (unlisted) or Loom → copy the link.
+## 1. (~5 min) Record the demo video — captioned, no voiceover, no editing
+- Open **http://localhost:8000/present** (captions are built into the page).
+- Cmd+Shift+5 → record screen.
+- Click **▶** through the 8 captions; at step 3 click "Plan settlement", at step 6
+  click the arcscan link. (Full walkthrough in **VIDEO_SCRIPT.md**.)
+- Stop → upload to YouTube (unlisted) / Loom → copy the link.
 
 ## 2. (1 min) Publish the code repo
 `.env` is gitignored (no secrets in git — verified). Choose one:

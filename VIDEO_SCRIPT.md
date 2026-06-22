@@ -1,12 +1,30 @@
 # Demo Video Script (~2.5 min)
 
-Setup before recording:
-- Terminal 1: `cd ~/arc-settlement-agent && /Users/macmini/아비트라지/venv/bin/python web.py`
-- Browser tab A: http://localhost:8000
-- Browser tab B: https://testnet.arcscan.app/tx/0xbeb17f3513914f502012c81fcb4e7252464e6306b8f8a6e5238f9d302691234f
-- (Optional) README.md open to the mermaid diagram.
+## Recommended: captioned mode (no voiceover, no editing)
 
-Record screen + voiceover. Beats:
+Captions are built into the demo page — record the screen and the subtitles are
+baked into the video.
+
+1. Start server: `cd ~/arc-settlement-agent && /Users/macmini/아비트라지/venv/bin/python web.py`
+2. Open **http://localhost:8000/present** (full screen).
+3. Start screen recording: **Cmd+Shift+5 → Record Entire/Selected Screen**.
+4. Walk the captions with the **▶** button (bottom bar, 8 steps), pausing ~3–6 s each:
+   - Steps 1–3: intro / problem / setup. At step 3, **click "Plan settlement"**
+     (the result fills in and the caption auto-jumps to step 4).
+   - Steps 4–5: the FX basis, route, and dry-run settlement are on screen.
+   - Step 6: **click the green panel's arcscan link** to show the real on-chain tx,
+     then come back.
+   - Steps 7–8: stack / Circle products / closing line.
+5. Stop recording (menu-bar stop). Upload to YouTube (unlisted) or Loom → copy link.
+
+That's it — ~2.5 min, captions visible throughout, nothing to edit.
+
+---
+
+## Voiceover script (optional, if you'd rather narrate)
+
+Setup: server running, tab A = http://localhost:8000, tab B = the arcscan tx.
+Beats:
 
 **0:00 – 0:20 · Intro**
 > "Hi, I'm Mihwa. This is the FX-aware Settlement Agent, built on Arc for Track 4,
