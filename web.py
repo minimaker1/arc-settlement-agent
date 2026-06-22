@@ -9,9 +9,11 @@ Run:  python web.py   ->  http://localhost:8000
 from __future__ import annotations
 
 import json
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import agent
+from circle_wallet import CircleWallets
 
 PORT = 8000
 
@@ -112,8 +114,10 @@ a{color:#3b6cff}
   <label style="grid-column:1/3">Recipient address<input id="to" value="0x326d5d0161180d636e01cf4925eb39163e5d6855"></label>
   <label style="grid-column:1/3">Reference / memo<input id="ref" value="invoice-2026-0001"></label>
   <button>Plan settlement</button>
+  <button type="button" id="exec" style="grid-column:1/3;background:#16a34a">⚡ Execute 1 USDC on-chain (testnet)</button>
 </form>
 <div class="card" id="out"></div>
+<div id="real" style="margin-top:12px"></div>
 
 <div class="proof">
   <b>✅ Real on-chain settlement (Arc testnet)</b><br>
@@ -159,6 +163,17 @@ $('f').onsubmit=async e=>{
     <div class="row"><span class="k">Settlement</span><span>${st.dry_run?'DRY-RUN':'ON-CHAIN'} · ${st.state} · ${st.amount_usdc} USDC</span></div>`;
   if(i<3)cap(3-i);
 };
+$('exec').onclick=async()=>{
+  const b=$('exec');b.disabled=true;b.textContent='Settling on-chain…';$('real').innerHTML='';
+  try{
+    const r=await fetch('/api/settle-real',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({to_address:$('to').value,reference:$('ref').value})});
+    const d=await r.json();
+    if(d.ok){
+      b.textContent='✅ Settled on-chain';
+      $('real').innerHTML=`<div class="proof"><b>⚡ Live on-chain settlement · ${d.state}</b><br>1 USDC → ${$('to').value.slice(0,14)}… via Circle Dev-Controlled Wallet<br>tx <a target="_blank" href="https://testnet.arcscan.app/tx/${d.txHash}">${(d.txHash||'').slice(0,18)}… ↗</a></div>`;
+    }else{b.disabled=false;b.textContent='⚡ Execute 1 USDC on-chain (testnet)';$('real').innerHTML='<span class="neg">'+(d.error||'failed')+'</span>';}
+  }catch(e){b.disabled=false;b.textContent='⚡ Execute 1 USDC on-chain (testnet)';$('real').textContent=String(e);}
+};
 </script>
 </body></html>"""
 
@@ -180,18 +195,39 @@ class Handler(BaseHTTPRequestHandler):
         self._send(404, b"not found", "text/plain")
 
     def do_POST(self) -> None:
-        if self.path != "/api/settle":
-            self._send(404, b"not found", "text/plain")
-            return
         n = int(self.headers.get("Content-Length", 0))
         req = json.loads(self.rfile.read(n) or b"{}")
-        intent = agent.SettlementIntent(
-            amount=float(req.get("amount", 0)), send_ccy="USD",
-            recv_ccy=req.get("recv_ccy", "EUR"), to_address=req.get("to_address", ""),
-            reference=req.get("reference", ""),
-        )
-        result = agent.run(intent, dry_run=True)  # web demo never moves funds
-        self._send(200, json.dumps(result, default=str).encode(), "application/json")
+
+        if self.path == "/api/settle":
+            intent = agent.SettlementIntent(
+                amount=float(req.get("amount", 0)), send_ccy="USD",
+                recv_ccy=req.get("recv_ccy", "EUR"), to_address=req.get("to_address", ""),
+                reference=req.get("reference", ""),
+            )
+            result = agent.run(intent, dry_run=True)  # planning never moves funds
+            self._send(200, json.dumps(result, default=str).encode(), "application/json")
+            return
+
+        if self.path == "/api/settle-real":
+            # Real 1-USDC settlement on Arc testnet (user-initiated via the UI).
+            try:
+                w = CircleWallets(dry_run=False)
+                tx = w.transfer_usdc(req.get("to_address", ""), 1.0, memo=req.get("reference", ""))
+                tx_id, state, txhash = tx.get("id"), tx.get("state"), tx.get("txHash")
+                for _ in range(12):
+                    if txhash:
+                        break
+                    time.sleep(0.8)
+                    t = w.get_transaction(tx_id)
+                    state, txhash = t.get("state"), t.get("txHash")
+                    if state in ("COMPLETE", "CONFIRMED", "FAILED"):
+                        break
+                self._send(200, json.dumps({"ok": True, "state": state, "txHash": txhash, "id": tx_id}).encode(), "application/json")
+            except Exception as e:  # surface the reason in the UI
+                self._send(200, json.dumps({"ok": False, "error": str(e)[:300]}).encode(), "application/json")
+            return
+
+        self._send(404, b"not found", "text/plain")
 
     def log_message(self, *a) -> None:  # quiet
         pass
