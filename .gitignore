@@ -6,3 +6,6 @@ circle_recovery_file.dat
 venv/
 *.csv
 .DS_Store
+
+# local-only drafts (not published)
+SERIES/
