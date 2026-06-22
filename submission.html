@@ -1,0 +1,107 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@page{margin:18mm 16mm}
+body{font:13px/1.55 -apple-system,system-ui,sans-serif;color:#111}
+h1{font-size:23px;margin:0 0 2px}
+.tag{color:#3b6cff;font-weight:600;font-size:13px;margin:0 0 2px}
+.lede{color:#444;margin:0 0 14px}
+h2{font-size:14px;border-bottom:2px solid #3b6cff;padding-bottom:3px;margin:18px 0 7px;color:#10245e}
+.kv{margin:3px 0}.kv b{display:inline-block;min-width:170px;color:#555}
+ul{margin:5px 0;padding-left:18px}li{margin:2px 0}
+.mono{font-family:ui-monospace,Menlo,monospace;font-size:11px;word-break:break-all}
+a{color:#3b6cff;text-decoration:none}
+.proof{background:#16a34a11;border:1px solid #16a34a55;border-radius:8px;padding:9px 12px;margin:8px 0;font-size:12px}
+.box{fill:#f3f6ff;stroke:#3b6cff;stroke-width:1.3}
+.box2{fill:#eafaf0;stroke:#16a34a;stroke-width:1.3}
+.lbl{font:11px system-ui;fill:#10245e}.lbl2{font:10px system-ui;fill:#555}
+.fb{font-size:12px}.fb b{color:#10245e}
+</style></head><body>
+
+<p class="tag">The Stablecoins Commerce Stack Challenge · Track 4 — Agentic Economy</p>
+<h1>FX-aware Settlement Agent</h1>
+<p class="lede">An autonomous agent that settles cross-currency stablecoin payments at the best
+available on-chain rate on Arc.</p>
+
+<h2>Project Description</h2>
+<p>Cross-border and agentic commerce constantly convert between currencies. Converting at
+the naive spot rate leaves money on the table whenever a stablecoin (e.g. EURC) trades
+off-peg on-chain. The FX-aware Settlement Agent <b>prices the route before it pays</b>: it
+reads the live on-chain USDC/EURC rate on Arc, compares it to the real-world EUR/USD rate,
+computes the basis, and routes each payment the cheaper way — an on-chain swap to capture
+the dislocation, or a direct USDC transfer when there's no edge. It then settles in USDC via
+a Circle Developer-Controlled Wallet (server-side signing — no private keys handled by the
+app), attaches a memo for reconciliation, and charges a sub-cent per-settlement fee
+(Nanopayments concept). It runs autonomously, per payment.</p>
+
+<div class="kv"><b>Track</b> Track 4 — Best Agentic Economy Experience on Arc</div>
+<div class="kv"><b>Circle Account Email</b> changepa@gmail.com</div>
+<div class="kv"><b>GitHub (open source, MIT)</b> <a href="https://github.com/minimaker1/arc-settlement-agent">github.com/minimaker1/arc-settlement-agent</a></div>
+<div class="kv"><b>Demo video</b> <a href="https://youtu.be/GoKS3b-9Cik">youtu.be/GoKS3b-9Cik</a></div>
+
+<h2>Circle Products Used (on Arc)</h2>
+<ul>
+<li><b>USDC</b> — settlement rail, native on Arc; USDC-as-gas removes native-token funding.</li>
+<li><b>Circle Developer-Controlled Wallets</b> — autonomous, server-side-signed settlement; no raw private keys in the app.</li>
+<li><b>Nanopayments</b> — sub-cent per-settlement service fee.</li>
+<li><b>StableFX</b> <i>(conceptual)</i> — multi-currency routing target; the route logic is built to plug in once access is granted.</li>
+</ul>
+
+<h2>Working MVP</h2>
+<ul>
+<li><b>Backend:</b> <span class="mono">agent.py</span> (orchestration) + <span class="mono">fx_oracle.py</span> (on-chain basis vs spot) + <span class="mono">circle_wallet.py</span> (Circle Dev-Controlled Wallets) + <span class="mono">arc_client.py</span> (read-only Arc JSON-RPC).</li>
+<li><b>Frontend:</b> <span class="mono">web.py</span> — one-page UI (<span class="mono">/present</span>) that plans a settlement and executes a real one on-chain. Run: <span class="mono">python web.py</span> → http://localhost:8000</li>
+<li>Runs live against Arc testnet (chainId 5042002, USDC 0x3600…, EURC 0x89B5…).</li>
+</ul>
+<div class="proof"><b>✅ Real on-chain settlement (Arc testnet):</b> 1 USDC, FX-aware route, server-side
+signed by a Circle Developer-Controlled Wallet, memo attached.<br>
+tx <span class="mono">0xbeb17f3513914f502012c81fcb4e7252464e6306b8f8a6e5238f9d302691234f</span><br>
+<a href="https://testnet.arcscan.app/tx/0xbeb17f3513914f502012c81fcb4e7252464e6306b8f8a6e5238f9d302691234f">testnet.arcscan.app/tx/0xbeb17f35…91234f</a></div>
+
+<h2>Architecture</h2>
+<svg width="730" height="250" viewBox="0 0 730 250" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#3b6cff"/></marker></defs>
+<rect class="box" x="8" y="100" width="120" height="44" rx="7"/><text class="lbl" x="68" y="118" text-anchor="middle">Settlement</text><text class="lbl2" x="68" y="132" text-anchor="middle">intent (amt/ccy/memo)</text>
+<rect class="box" x="168" y="100" width="110" height="44" rx="7"/><text class="lbl" x="223" y="125" text-anchor="middle">Settlement Agent</text>
+<rect class="box" x="318" y="22" width="120" height="40" rx="7"/><text class="lbl" x="378" y="46" text-anchor="middle">FX Oracle</text>
+<rect class="box" x="500" y="6" width="150" height="34" rx="7"/><text class="lbl2" x="575" y="27" text-anchor="middle">Arc RPC · USDC/EURC</text>
+<rect class="box" x="500" y="48" width="150" height="34" rx="7"/><text class="lbl2" x="575" y="69" text-anchor="middle">Spot FX · EUR/USD</text>
+<rect class="box" x="318" y="100" width="120" height="44" rx="7"/><text class="lbl" x="378" y="118" text-anchor="middle">Route decision</text><text class="lbl2" x="378" y="132" text-anchor="middle">swap vs direct USDC</text>
+<rect class="box2" x="318" y="182" width="160" height="44" rx="7"/><text class="lbl" x="398" y="200" text-anchor="middle">Circle Dev Wallet</text><text class="lbl2" x="398" y="214" text-anchor="middle">server-side signing</text>
+<rect class="box2" x="520" y="182" width="150" height="44" rx="7"/><text class="lbl" x="595" y="200" text-anchor="middle">Arc settlement tx</text><text class="lbl2" x="595" y="214" text-anchor="middle">USDC + memo</text>
+<line x1="128" y1="122" x2="166" y2="122" stroke="#3b6cff" marker-end="url(#a)"/>
+<line x1="278" y1="116" x2="316" y2="60" stroke="#3b6cff" marker-end="url(#a)"/>
+<line x1="278" y1="122" x2="316" y2="122" stroke="#3b6cff" marker-end="url(#a)"/>
+<line x1="438" y1="38" x2="498" y2="26" stroke="#3b6cff" marker-end="url(#a)"/>
+<line x1="438" y1="46" x2="498" y2="63" stroke="#3b6cff" marker-end="url(#a)"/>
+<line x1="378" y1="62" x2="378" y2="98" stroke="#3b6cff" marker-end="url(#a)"/>
+<line x1="378" y1="144" x2="378" y2="180" stroke="#16a34a" marker-end="url(#a)"/>
+<line x1="478" y1="204" x2="518" y2="204" stroke="#16a34a" marker-end="url(#a)"/>
+</svg>
+
+<h2>Documentation</h2>
+<p>Full setup, run instructions, architecture, and reproducible real-settlement demo are in
+the repository <span class="mono">README.md</span> (plus <span class="mono">circle_setup.py</span> for
+wallet provisioning and <span class="mono">demo_settle.py</span> for the on-chain demo):
+<a href="https://github.com/minimaker1/arc-settlement-agent">github.com/minimaker1/arc-settlement-agent</a></p>
+
+<h2>Circle Product Feedback</h2>
+<p class="fb"><b>Why these products:</b> USDC + Developer-Controlled Wallets let the agent settle
+autonomously with server-side signing — we never handle a private key, the exact trust model
+an agentic payment system needs. USDC-as-gas on Arc removed the native-token funding step.
+Nanopayments fits per-settlement pricing.</p>
+<p class="fb"><b>What worked well:</b> Reading Arc over plain JSON-RPC worked first try against the
+documented USDC/EURC addresses. Wallet provisioning (entity secret → wallet set → ARC-TESTNET
+wallet) and the testnet faucet were smooth, and deterministic sub-second finality made
+settlement receipts trivial to verify — our 1-USDC tx confirmed on arcscan immediately.</p>
+<p class="fb"><b>What could be improved:</b> (1) The <span class="mono">/developer/transactions/transfer</span>
+endpoint rejected the SDK-style nested <span class="mono">fee:{type:'level',config:{feeLevel}}</span>;
+the raw REST API needs a top-level <span class="mono">feeLevel</span>, but the 400 pointed at
+gasPrice/gasLimit, which was misleading. (2) Entity-secret registration is Console-only — there's
+no working REST endpoint (<span class="mono">/config/entity/entitySecret/register</span> → 404),
+which blocks fully-scripted setup. (3) DEX pool addresses (e.g. a Synthra USDC/EURC pool) aren't
+discoverable from the docs or the Uniswap registry, so wiring an on-chain price source needed UI hunting.</p>
+<p class="fb"><b>Recommendations:</b> Document the raw-REST <span class="mono">feeLevel</span> shape with a
+copy-paste transfer example; expose a REST entity-secret registration path (or flag it Console-only
+in the quickstart); and publish a machine-readable testnet registry of DEX/pool addresses and
+StableFX corridors so oracle/routing builders can integrate programmatically.</p>
+
+</body></html>
