@@ -31,4 +31,6 @@ CIRCLE_API_BASE = "https://api.circle.com/v1/w3s"
 DRY_RUN_DEFAULT = True
 
 # --- Agent economics ------------------------------------------------------ #
-NANOPAYMENT_FEE_USDC = 0.001  # per-settlement service fee (Nanopayments concept)
+NANOPAYMENT_FEE_USDC = 0.001  # sub-cent per-settlement service fee
+# Where the agent collects its pay-per-settlement nanopayment (its treasury).
+NANOPAY_SERVICE_ADDRESS = os.getenv("NANOPAY_SERVICE_ADDRESS") or None
