@@ -4,11 +4,12 @@
 Built on **Arc** (Circle's stablecoin L1) testnet.
 
 An autonomous agent that settles **cross-currency stablecoin payments at the
-best available on-chain rate**. It reads the live on-chain USDC↔EURC price on
-Arc, compares it to the real-world EUR/USD rate, and routes each payment the
-cheaper way — capturing FX dislocations instead of blindly converting at spot —
-then settles in USDC via a Circle Developer-Controlled Wallet and attaches a
-transaction memo for reconciliation.
+best available on-chain rate**. It reads three live **Pyth** price feeds on Arc —
+EUR/USD, EURC/USD, USDC/USD — measures how far EURC trades from its euro peg, and
+routes each payment the cheaper way (buy discounted EURC vs. settle direct in
+USDC) instead of converting at naive spot. It gates on the oracle's confidence +
+freshness before acting, then settles in USDC via a Circle Developer-Controlled
+Wallet with a memo for reconciliation.
 
 > Educational / testnet demo only. Read-only market data; settlement defaults to
 > dry-run and moves no funds unless explicitly enabled on testnet.
@@ -27,17 +28,20 @@ autonomously, per payment.
 flowchart LR
     intent[Settlement Intent\n amount / send / recv / memo] --> agent[Settlement Agent]
     agent --> oracle[FX Oracle]
-    oracle -->|on-chain USDC/EURC| arc[(Arc testnet RPC\n Synthra V3 pool)]
-    oracle -->|real EUR/USD| fx[(Spot FX feed)]
-    agent --> route{Route decision\n on-chain swap vs direct USDC}
+    oracle -->|EUR/USD · EURC/USD · USDC/USD| pyth[(Pyth feeds\n on Arc testnet)]
+    oracle --> gate{Confidence + freshness gate}
+    gate --> route{Route decision\n on-chain swap vs direct USDC}
     route --> wallet[Circle Dev-Controlled Wallet]
     wallet -->|USDC + memo| settle[(Arc testnet\n settlement tx)]
-    wallet --> fee[Nanopayments\n per-settlement fee]
+    wallet --> fee[Nanopayment\n per-settlement fee]
 ```
 
+- **`pyth.py`** — read-only Pyth feeds on Arc (EUR/USD, EURC/USD, USDC/USD) via
+  `getPriceUnsafe`; no fees, with confidence + staleness on every read.
+- **`fx_oracle.py`** — basis = EURC/USD vs EUR/USD peg deviation → route, gated on
+  oracle usability.
 - **`arc_client.py`** — read-only Arc testnet client (raw JSON-RPC; ERC-20 +
-  Uniswap-V3-style pool reads). The FX data engine.
-- **`fx_oracle.py`** — implied on-chain USD/EUR vs real EUR/USD → basis → route.
+  wallet reads).
 - **`agent.py`** — orchestrates intent → quote → route → settle.
 - **`circle_wallet.py`** — Circle Developer-Controlled Wallets wrapper
   (server-side signing; dry-run by default).
@@ -47,6 +51,8 @@ flowchart LR
 - **USDC** — settlement rail (native on Arc).
 - **Circle Wallets** (Developer-Controlled) — server-side signing, no raw keys.
 - **Nanopayments** — per-settlement service fee (sub-cent) concept.
+- **Pyth** *(Arc partner oracle)* — live on-chain EUR/USD, EURC/USD, USDC/USD
+  feeds; the agent's pricing source and confidence gate.
 - **StableFX** *(conceptual)* — multi-currency routing target once access is
   granted; the agent's route logic is built to plug into it.
 
@@ -58,9 +64,12 @@ signed server-side by a Circle Developer-Controlled Wallet:
 > tx `0xbeb17f3513914f502012c81fcb4e7252464e6306b8f8a6e5238f9d302691234f`
 > https://testnet.arcscan.app/tx/0xbeb17f3513914f502012c81fcb4e7252464e6306b8f8a6e5238f9d302691234f
 
-The on-chain FX leg uses a clearly-labeled **simulated** rate until a live Arc
-USDC/EURC pool address is wired (set `SYNTHRA_USDC_EURC_POOL`); the settlement
-leg is fully real.
+Both legs are real. FX/basis comes from **live Pyth feeds on Arc** — verified
+live: EUR/USD `1.1455` (fresh), EURC/USD ~50 bps below its euro peg → route
+`onchain_swap`. (On testnet EUR/USD refreshes in seconds while the EURC/USD &
+USDC/USD crypto feeds update every few hours, so the agent uses a testnet-tuned
+staleness window and always surfaces each feed's age.) Settlement is executed on
+Arc via a Circle Developer-Controlled Wallet.
 
 ## Setup & run
 
@@ -88,14 +97,17 @@ model an agentic payment system needs. Nanopayments fits per-settlement pricing.
 USDC-as-gas removes the usual native-token funding step. Deterministic finality
 makes settlement receipts simple to reason about.
 
-*What could be improved:* DEX pool addresses (e.g. Synthra USDC/EURC) aren't yet
-discoverable from the public docs or the standard Uniswap registry, so wiring an
-on-chain price source required hunting through the app UI. A canonical
-testnet "deployed pools / token pairs" list in the docs would save builders time.
+*What could be improved:* The transfer endpoint wants a top-level `feeLevel` (the
+SDK-style nested `fee` object 400s with a misleading gasPrice/gasLimit message),
+and entity-secret registration is Console-only (the REST path 404s). On oracles,
+Pyth on Arc was great to read via `getPriceUnsafe`, but on testnet the FX feed is
+fresh while the EURC/USD & USDC/USD crypto feeds lag several hours — a note on
+per-feed update cadence (or a keeper for the stablecoin feeds) would help pricing
+builders reason about staleness.
 
-*Recommendation:* Publish a machine-readable registry of testnet DEX/pool
-addresses (and StableFX corridors as they go live) alongside the contract-address
-docs, so price-oracle and routing builders can integrate programmatically.
+*Recommendation:* Document the raw-REST `feeLevel` shape with a copy-paste transfer
+example, flag entity-secret registration as Console-only, and publish expected
+per-feed update cadence for the oracle feeds live on Arc testnet.
 
 ## License
 
