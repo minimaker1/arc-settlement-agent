@@ -13,6 +13,7 @@ real, ~1-wei write via a Circle Developer-Controlled Wallet) and reads the resul
 from __future__ import annotations
 
 import sys
+import time
 
 import pyth
 import pyth_pull
@@ -29,8 +30,16 @@ def quote(amount_krw: float, live: bool = False) -> None:
         rate, src = hermes_price, "hermes (dry-run; would push + read on-chain when live)"
     else:
         res = pyth_pull.push_update(blob, dry_run=False)
-        print("pushed updatePriceFeeds ->", res["tx"].get("id"), res["tx"].get("state"))
-        p = pyth.read_price(KRW_ID)               # now warm on-chain
+        print("pushed updatePriceFeeds ->", res["tx_id"], res["state"])
+        p = None
+        for _ in range(6):                        # read may lag the tx by a moment
+            try:
+                p = pyth.read_price(KRW_ID)
+                break
+            except Exception:
+                time.sleep(2)
+        if p is None:
+            raise SystemExit("could not read USD/KRW on-chain yet — tx still settling; re-run to read")
         rate, src = p.price, f"on-chain Pyth (age {p.age_seconds:.0f}s)"
 
     usdc = amount_krw / rate

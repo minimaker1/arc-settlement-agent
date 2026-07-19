@@ -9,6 +9,8 @@ via a Circle Developer-Controlled Wallet.
 """
 from __future__ import annotations
 
+import time
+
 import requests
 
 import pyth
@@ -57,9 +59,15 @@ def push_update(blob_hex: str, dry_run: bool = True) -> dict:
         return {"dry_run": True, "fee_wei": fee, "call_bytes": len(call_data) // 2 - 1,
                 "detail": "DRY RUN — pass dry_run=False to push on Arc testnet."}
     # Pyth refunds excess msg.value; 1 gwei native is plenty over a ~1-wei fee.
-    tx = CircleWallets(dry_run=False).contract_execution(pyth.PYTH, call_data,
-                                                         amount="0.000000001")
-    return {"dry_run": False, "fee_wei": fee, "tx": tx}
+    w = CircleWallets(dry_run=False)
+    tx = w.contract_execution(pyth.PYTH, call_data, amount="0.000000001")
+    tx_id, state = tx.get("id"), tx.get("state")
+    for _ in range(20):                       # wait for the update to land on-chain
+        if state in ("CONFIRMED", "COMPLETE", "FAILED"):
+            break
+        time.sleep(2)
+        state = w.get_transaction(tx_id).get("state")
+    return {"dry_run": False, "fee_wei": fee, "tx_id": tx_id, "state": state}
 
 
 if __name__ == "__main__":

@@ -54,7 +54,10 @@ def _rpc_call(to: str, data: str) -> str:
     r = requests.post(RPC_URL, json={"jsonrpc": "2.0", "id": 1, "method": "eth_call",
                                      "params": [{"to": to, "data": data}, "latest"]}, timeout=15)
     r.raise_for_status()
-    return r.json()["result"]
+    j = r.json()
+    if "error" in j:
+        raise RuntimeError(f"eth_call reverted: {j['error']}")
+    return j["result"]
 
 
 def _sint(word: str) -> int:
