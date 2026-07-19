@@ -71,6 +71,16 @@ USDC/USD crypto feeds update every few hours, so the agent uses a testnet-tuned
 staleness window and always surfaces each feed's age.) Settlement is executed on
 Arc via a Circle Developer-Controlled Wallet.
 
+## 🇰🇷 KRW1 corridor (Pyth pull model)
+
+USD/KRW isn't kept warm on Arc testnet, so the agent refreshes it itself using
+Pyth's pull model — fetch the update from Hermes, push it on-chain
+(`updatePriceFeeds`, a ~1-wei fee via the Circle wallet), then read the fresh
+rate and settle the equivalent USDC. Verified: USD/KRW `1,487.75`, update fee
+`1 wei`. That's transparent won-denominated cross-border settlement at an on-chain
+rate instead of a bank's ~1-2% FX spread — the corridor I actually want to use.
+See `pyth_pull.py` + `demo_krw.py`.
+
 ## Setup & run
 
 ```bash
@@ -81,6 +91,7 @@ python agent.py                # CLI: end-to-end plan (dry-run), live Arc testne
 python web.py                  # Web UI at http://localhost:8000 (frontend+backend)
 python circle_setup.py         # one-time: provision entity secret + ARC-TESTNET wallet
 python demo_settle.py          # real 1-USDC settlement demo (moves testnet funds)
+python demo_krw.py [--live]    # KRW1 corridor: settle KRW at real on-chain USD/KRW
 ```
 
 Arc testnet reference: RPC `https://rpc.testnet.arc.network`, chainId `5042002`,
