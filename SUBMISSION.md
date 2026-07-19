@@ -40,8 +40,9 @@ https://challenges.ignyte.ae/competition/4B436318-C737-F111-9A49-6045BD14D400
 > https://github.com/minimaker1/arc-settlement-agent   (public; .env gitignored)
 
 **Demo application URL**
-> Runs locally: `python web.py` → http://localhost:8000  (shown in the video).
-> Optional public URL via `ngrok http 8000` — see TOMORROW.md.
+> https://fx-aware-settlement-agent.onrender.com/present  — public, plans with
+> live on-chain Pyth data (dry-run, no keys). Real on-chain execution runs locally
+> (`ENABLE_LIVE=1` + Circle keys).
 
 **Circle Product Feedback** (required section)
 > *Why these products:* USDC + Developer-Controlled Wallets let the agent settle

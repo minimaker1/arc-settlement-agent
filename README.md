@@ -14,6 +14,8 @@ Wallet with a memo for reconciliation.
 > Educational / testnet demo only. Read-only market data; settlement defaults to
 > dry-run and moves no funds unless explicitly enabled on testnet.
 
+**Live demo:** https://fx-aware-settlement-agent.onrender.com/present  ·  **Code:** MIT (this repo)
+
 ## Why this matters
 
 Cross-border and agentic commerce constantly convert between currencies. Doing

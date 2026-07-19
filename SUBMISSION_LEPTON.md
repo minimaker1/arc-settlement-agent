@@ -52,6 +52,9 @@ nanopayments focus. Copy the fields below.
 > volume is real testnet USDC, not mocked. Problem solved: cross-currency payers
 > overpay at naive spot; the agent captures the basis instead.
 
+**Live demo**
+> https://fx-aware-settlement-agent.onrender.com/present
+
 **GitHub (public)**
 > https://github.com/minimaker1/arc-settlement-agent
 
