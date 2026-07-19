@@ -51,7 +51,7 @@ def get_update_fee(blob_hex: str) -> int:
 
 def push_update(blob_hex: str, dry_run: bool = True) -> dict:
     """Push a Pyth update on-chain via updatePriceFeeds (payable write)."""
-    call_data = "0x" + _SEL_UPDATE_PRICE_FEEDS + _encode_bytes_array(blob_hex)
+    call_data = _SEL_UPDATE_PRICE_FEEDS + _encode_bytes_array(blob_hex)  # selector already has 0x
     fee = get_update_fee(blob_hex)
     if dry_run:
         return {"dry_run": True, "fee_wei": fee, "call_bytes": len(call_data) // 2 - 1,
