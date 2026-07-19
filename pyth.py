@@ -51,13 +51,24 @@ class PythPrice:
 
 
 def _rpc_call(to: str, data: str) -> str:
-    r = requests.post(RPC_URL, json={"jsonrpc": "2.0", "id": 1, "method": "eth_call",
-                                     "params": [{"to": to, "data": data}, "latest"]}, timeout=15)
-    r.raise_for_status()
-    j = r.json()
-    if "error" in j:
-        raise RuntimeError(f"eth_call reverted: {j['error']}")
-    return j["result"]
+    last: object = None
+    for i in range(4):                     # retry rate-limits / transient errors
+        try:
+            r = requests.post(RPC_URL, json={"jsonrpc": "2.0", "id": 1, "method": "eth_call",
+                                             "params": [{"to": to, "data": data}, "latest"]}, timeout=15)
+            if r.status_code == 429:
+                last = "429 rate limited"
+                time.sleep(0.7 * (i + 1))
+                continue
+            r.raise_for_status()
+            j = r.json()
+            if "error" in j:
+                raise RuntimeError(f"eth_call reverted: {j['error']}")
+            return j["result"]
+        except requests.RequestException as e:
+            last = e
+            time.sleep(0.7 * (i + 1))
+    raise RuntimeError(f"RPC call failed after retries: {last}")
 
 
 def _sint(word: str) -> int:

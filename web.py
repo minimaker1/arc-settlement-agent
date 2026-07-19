@@ -9,13 +9,17 @@ Run:  python web.py   ->  http://localhost:8000
 from __future__ import annotations
 
 import json
+import os
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import agent
 from circle_wallet import CircleWallets
 
-PORT = 8000
+PORT = int(os.environ.get("PORT", "8000"))
+# Real on-chain execution is gated: off by default so a public deploy (no keys)
+# only ever plans in dry-run. Set ENABLE_LIVE=1 locally to enable the ⚡ button.
+ENABLE_LIVE = os.environ.get("ENABLE_LIVE") == "1"
 
 # A real, verifiable on-chain settlement produced by this agent (Arc testnet).
 PROOF_TX = "0xbeb17f3513914f502012c81fcb4e7252464e6306b8f8a6e5238f9d302691234f"
@@ -199,16 +203,24 @@ class Handler(BaseHTTPRequestHandler):
         req = json.loads(self.rfile.read(n) or b"{}")
 
         if self.path == "/api/settle":
-            intent = agent.SettlementIntent(
-                amount=float(req.get("amount", 0)), send_ccy="USD",
-                recv_ccy=req.get("recv_ccy", "EUR"), to_address=req.get("to_address", ""),
-                reference=req.get("reference", ""),
-            )
-            result = agent.run(intent, dry_run=True)  # planning never moves funds
-            self._send(200, json.dumps(result, default=str).encode(), "application/json")
+            try:
+                intent = agent.SettlementIntent(
+                    amount=float(req.get("amount", 0)), send_ccy="USD",
+                    recv_ccy=req.get("recv_ccy", "EUR"), to_address=req.get("to_address", ""),
+                    reference=req.get("reference", ""),
+                )
+                result = agent.run(intent, dry_run=True)  # planning never moves funds
+                self._send(200, json.dumps(result, default=str).encode(), "application/json")
+            except Exception as e:
+                self._send(200, json.dumps({"error": str(e)[:200]}).encode(), "application/json")
             return
 
         if self.path == "/api/settle-real":
+            if not ENABLE_LIVE:
+                self._send(200, json.dumps({"ok": False, "error":
+                    "Live execution is disabled on the public demo — clone the repo "
+                    "and run locally with your Circle keys."}).encode(), "application/json")
+                return
             # Real 1-USDC settlement on Arc testnet (user-initiated via the UI).
             try:
                 w = CircleWallets(dry_run=False)
@@ -234,5 +246,5 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    print(f"FX-aware Settlement Agent UI -> http://localhost:{PORT}")
-    ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
+    print(f"FX-aware Settlement Agent UI -> port {PORT}")
+    ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()

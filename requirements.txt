@@ -1,5 +1,4 @@
 requests>=2.31
 python-dotenv>=1.0
 cryptography>=42.0          # RSA-OAEP for Circle entity-secret ciphertext
-# optional: real-world EUR/USD reference for the FX oracle
-yfinance>=0.2.40
+# yfinance>=0.2.40         # optional; FX now uses on-chain Pyth feeds, not yfinance

@@ -15,10 +15,14 @@ freshness + tightness before acting on a price (see FxQuote.usable).
 """
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from typing import Literal
 
 import pyth
+
+_CACHE: dict = {"t": 0.0, "q": None}   # brief cache to spare the public RPC
+_CACHE_TTL = 10.0
 
 
 @dataclass
@@ -42,11 +46,14 @@ class Route:
 
 def get_quote() -> FxQuote:
     """Read EUR/USD, EURC/USD, USDC/USD from Pyth on Arc and compute the basis."""
+    now = time.time()
+    if _CACHE["q"] is not None and now - _CACHE["t"] < _CACHE_TTL:
+        return _CACHE["q"]
     eur = pyth.eur_usd()
     eurc = pyth.eurc_usd()
     usdc = pyth.usdc_usd()
     basis = (eurc.price / eur.price - 1) if (eur.price and eurc.price) else None
-    return FxQuote(
+    q = FxQuote(
         real_usd_per_eur=eur.price,
         onchain_usd_per_eur=eurc.price,
         usdc_usd=usdc.price,
@@ -56,6 +63,8 @@ def get_quote() -> FxQuote:
         widest_conf_bps=max(eur.rel_conf_bps, eurc.rel_conf_bps, usdc.rel_conf_bps),
         usable=eur.is_usable() and eurc.is_usable() and usdc.is_usable(),
     )
+    _CACHE["t"], _CACHE["q"] = now, q
+    return q
 
 
 def decide_route(quote: FxQuote, send_ccy: str, recv_ccy: str) -> Route:

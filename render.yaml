@@ -1,0 +1,13 @@
+# Render Blueprint — deploy the dry-run demo UI as a public web service.
+# The public deploy plans settlements with live on-chain Pyth data (no keys,
+# no funds moved); real on-chain execution stays local (ENABLE_LIVE=1 + .env).
+services:
+  - type: web
+    name: fx-aware-settlement-agent
+    runtime: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python web.py"
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
