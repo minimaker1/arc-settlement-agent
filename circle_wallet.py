@@ -105,6 +105,29 @@ class CircleWallets:
         r.raise_for_status()
         return r.json()["data"]["transaction"]
 
+    def contract_execution(self, contract: str, call_data: str,
+                           amount: str | None = None) -> dict:
+        """Execute a contract call from the wallet (Circle signs server-side).
+
+        `amount` is native-token value (msg.value) for payable calls — e.g. the
+        tiny Pyth updatePriceFeeds fee. Real on-chain write.
+        """
+        body = {
+            "idempotencyKey": str(uuid.uuid4()),
+            "entitySecretCiphertext": _ciphertext(self._pubkey()),
+            "walletId": self.wallet_id,
+            "contractAddress": contract,
+            "callData": call_data,
+            "feeLevel": "MEDIUM",
+        }
+        if amount is not None:
+            body["amount"] = amount
+        r = requests.post(f"{config.CIRCLE_API_BASE}/developer/transactions/contractExecution",
+                          headers=_headers(), json=body, timeout=30)
+        if not r.ok:
+            raise RuntimeError(f"contractExecution {r.status_code}: {r.text}")
+        return r.json()["data"]
+
     def settle_usdc(self, to_address: str, amount_usdc: float, memo: str = "") -> SettlementReceipt:
         """Send USDC on Arc testnet. dry_run (default) simulates, moving no funds."""
         if self.dry_run or not self.api_key or not self.wallet_id:
