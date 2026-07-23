@@ -1,0 +1,131 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@page{size:297mm 167mm;margin:0}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.5 -apple-system,system-ui,sans-serif;color:#0f172a}
+.s{width:297mm;height:167mm;padding:16mm 18mm;page-break-after:always;position:relative;display:flex;flex-direction:column}
+.s:last-child{page-break-after:auto}
+h1{font-size:40px;margin:0 0 6px;letter-spacing:-.5px}
+h2{font-size:28px;margin:0 0 14px;color:#10245e}
+.kicker{color:#3b6cff;font-weight:700;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 10px}
+.lede{font-size:19px;color:#334155;margin:0}
+ul{margin:6px 0;padding-left:22px}li{margin:7px 0;font-size:17px}
+.big{font-size:44px;font-weight:800;color:#3b6cff;line-height:1.1}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+.card{border:1px solid #cbd5e1;border-radius:10px;padding:14px 16px;background:#f8fafc}
+.card b{color:#10245e}
+.ok{border-color:#16a34a55;background:#16a34a10}
+.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px;word-break:break-all}
+.foot{position:absolute;bottom:9mm;left:18mm;right:18mm;display:flex;justify-content:space-between;font-size:11px;color:#94a3b8}
+.pill{display:inline-block;background:#3b6cff18;color:#3b6cff;border-radius:999px;padding:3px 12px;font-size:12px;font-weight:700;margin-right:6px}
+.flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.node{border:1.5px solid #3b6cff;border-radius:9px;padding:9px 12px;font-size:13px;background:#f3f6ff}
+.node.g{border-color:#16a34a;background:#eafaf0}
+.arw{color:#3b6cff;font-weight:800}
+</style></head><body>
+
+<div class="s">
+  <p class="kicker">Programmable Money Hackathon · Arc × Encode</p>
+  <h1>FX-aware Settlement Agent</h1>
+  <p class="lede">An autonomous agent that settles cross-currency stablecoin payments<br>at the best available <b>on-chain</b> rate on Arc.</p>
+  <div style="margin-top:18px">
+    <span class="pill">DeFi Track</span><span class="pill">Agentic Economy Track</span>
+  </div>
+  <div class="grid" style="margin-top:auto">
+    <div class="card ok"><b>Live today</b><br>Real on-chain settlement + a public demo, priced by live Pyth feeds on Arc.</div>
+    <div class="card"><b>Built by</b><br>Jeong-hun Park — Korea-based quant (FX / basis / funding arbitrage).</div>
+  </div>
+  <div class="foot"><span>github.com/minimaker1/arc-settlement-agent</span><span>1</span></div>
+</div>
+
+<div class="s">
+  <p class="kicker">Problem</p>
+  <h2>Cross-currency payments settle at the naive spot rate</h2>
+  <p class="lede">Stablecoins drift from the currency they're pegged to. Nobody prices that gap before paying — so payers quietly overpay, every time.</p>
+  <div class="grid" style="margin-top:14px">
+    <div class="card"><div class="big">30–50 bps</div>typical EURC deviation from its euro peg, observed live on Arc via Pyth.</div>
+    <div class="card"><div class="big">~$3,000</div>left on the table on a single €1M B2B settlement at 30 bps.</div>
+  </div>
+  <ul style="margin-top:12px">
+    <li>Remittances, marketplace payouts, global payroll — all convert at spot.</li>
+    <li>As <b>AI agents</b> start settling autonomously, this leakage scales with them.</li>
+  </ul>
+  <div class="foot"><span>FX-aware Settlement Agent</span><span>2</span></div>
+</div>
+
+<div class="s">
+  <p class="kicker">Solution</p>
+  <h2>The agent prices the route before it pays</h2>
+  <ul>
+    <li><b>Reads three live Pyth feeds on Arc</b> — EUR/USD (FX), EURC/USD, USDC/USD — with confidence + staleness on every read.</li>
+    <li><b>Computes the basis</b>: how far EURC trades from its own euro peg.</li>
+    <li><b>Routes the cheaper way</b>: buy discounted EURC on-chain, or settle direct in USDC when there's no edge.</li>
+    <li><b>Settles in USDC</b> via a Circle Developer-Controlled Wallet — server-side signing, no private keys in the app — with a memo for reconciliation.</li>
+    <li><b>Charges a sub-cent nanopayment</b> per settlement for the routing service.</li>
+  </ul>
+  <div class="card ok" style="margin-top:auto"><b>Safety by design:</b> if the oracle is stale or its confidence is wide, the agent refuses the FX bet and settles safely in USDC.</div>
+  <div class="foot"><span>FX-aware Settlement Agent</span><span>3</span></div>
+</div>
+
+<div class="s">
+  <p class="kicker">It's real, not a mock</p>
+  <h2>Live on Arc testnet</h2>
+  <div class="grid">
+    <div class="card ok"><b>Real on-chain settlement</b><br>1 USDC, FX-aware route, memo attached, signed server-side by a Circle Dev-Controlled Wallet.<br><span class="mono">0xbeb17f3513914f502012c81fcb4e7252464e6306b8f8a6e5238f9d302691234f</span></div>
+    <div class="card"><b>Live pricing</b><br>EUR/USD <b>1.1455</b> from Pyth on Arc · EURC ≈ <b>50 bps</b> below its peg → route <b>onchain_swap</b>.</div>
+    <div class="card"><b>Public demo</b><br><span class="mono">fx-aware-settlement-agent.onrender.com/present</span><br>Plans with live on-chain data; execution stays key-gated.</div>
+    <div class="card"><b>Open source</b><br>MIT, ~600 lines, zero-dependency Arc reader + Circle wallet helpers others can lift.</div>
+  </div>
+  <div class="foot"><span>FX-aware Settlement Agent</span><span>4</span></div>
+</div>
+
+<div class="s">
+  <p class="kicker">Flagship corridor</p>
+  <h2>🇰🇷 KRW1 / USDC — won settlement at an on-chain rate</h2>
+  <p class="lede">USD/KRW isn't kept warm on Arc, so the agent refreshes it itself — Pyth's pull model, exactly as intended.</p>
+  <div class="flow">
+    <span class="node">Hermes update</span><span class="arw">→</span>
+    <span class="node">updatePriceFeeds on Arc<br><small>~1 wei fee, Circle wallet</small></span><span class="arw">→</span>
+    <span class="node">read fresh USD/KRW</span><span class="arw">→</span>
+    <span class="node g">settle USDC</span>
+  </div>
+  <div class="grid" style="margin-top:14px">
+    <div class="card"><div class="big">₩1,000,000</div>settles for <b>672 USDC</b> at the on-chain rate the agent just published.</div>
+    <div class="card ok"><div class="big">~10 USDC</div>saved vs a typical ~1.5% bank FX spread — on one payment.</div>
+  </div>
+  <div class="foot"><span>Korean-won rails are the version I actually want to use</span><span>5</span></div>
+</div>
+
+<div class="s">
+  <p class="kicker">Architecture</p>
+  <h2>Intent → price → gate → route → settle</h2>
+  <div class="flow" style="margin-top:16px">
+    <span class="node">Settlement intent<br><small>amount / ccy / memo</small></span><span class="arw">→</span>
+    <span class="node">FX oracle<br><small>Pyth on Arc ×3 feeds</small></span><span class="arw">→</span>
+    <span class="node">Confidence + freshness gate</span><span class="arw">→</span>
+    <span class="node">Route decision<br><small>swap vs direct USDC</small></span><span class="arw">→</span>
+    <span class="node g">Circle Dev-Controlled Wallet<br><small>USDC + memo</small></span><span class="arw">→</span>
+    <span class="node g">Arc settlement tx</span>
+  </div>
+  <div class="grid" style="margin-top:auto">
+    <div class="card"><b>Circle / Arc stack</b><br>USDC (native gas) · Developer-Controlled Wallets · Nanopayments · Pyth oracle · transaction memos</div>
+    <div class="card"><b>Why Arc</b><br>USDC-denominated fees, deterministic sub-second finality, stablecoin-native FX rails</div>
+  </div>
+  <div class="foot"><span>FX-aware Settlement Agent</span><span>6</span></div>
+</div>
+
+<div class="s">
+  <p class="kicker">Where this goes</p>
+  <h2>From hackathon to something I keep running</h2>
+  <ul>
+    <li><b>Depth-aware confidence</b> — size the trade against pool depth and expected slippage, not just price confidence.</li>
+    <li><b>More corridors</b> — GBP and JPY feeds are already live on Arc; StableFX partner stablecoins as they land.</li>
+    <li><b>KRW1 end-to-end</b> — settle into the won stablecoin itself once it's on Arc, closing the corridor.</li>
+    <li><b>Agent-to-agent</b> — the agent as a paid routing service other agents call, billed per settlement.</li>
+  </ul>
+  <div class="card ok" style="margin-top:auto">
+    <b>Thesis:</b> stablecoin FX dislocations are real, Arc makes them programmable, and an agent that prices the route before it pays turns that into savings — autonomously, per payment.
+  </div>
+  <div class="foot"><span>github.com/minimaker1/arc-settlement-agent · MIT</span><span>7</span></div>
+</div>
+
+</body></html>
