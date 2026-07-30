@@ -138,14 +138,14 @@ a{color:#3b6cff}
 
 <script>
 const CAPS=[
- "FX-aware Settlement Agent — built on Arc for Track 4, the Agentic Economy.",
- "Problem: cross-currency payments convert at naive spot, losing money whenever a stablecoin like EURC trades off-peg on-chain.",
+ "FX-aware Settlement Agent — built on Arc for the Programmable Money Hackathon (DeFi + Agentic Economy).",
+ "Problem: cross-currency payments convert at naive spot, losing money whenever a stablecoin like EURC drifts from its peg on-chain.",
  "The agent prices the route before it pays. Settling 1,000 USD to a EUR recipient — click ‘Plan settlement’.",
- "It reads real EUR/USD and the on-chain USDC/EURC rate on Arc, finds EURC ~30 bps cheap, and routes via on-chain swap to capture the FX edge.",
- "It settles in USDC with a memo for reconciliation. This web demo plans in dry-run — no funds move.",
- "But it really executes. Here is a real on-chain settlement on Arc testnet via a Circle Developer-Controlled Wallet — open the arcscan link.",
- "Stack: read-only Arc RPC → FX oracle → route decision → Circle Wallets settlement. Built on USDC, Circle Wallets, and Nanopayments, with USDC as gas.",
- "FX-aware settlement turns Arc’s stablecoin rails into measurable savings — per payment, autonomously. Thanks for watching."
+ "It reads three live Pyth feeds on Arc — EUR/USD, EURC/USD, USDC/USD — and measures how far EURC trades from its euro peg.",
+ "That basis picks the route: buy discounted EURC on-chain, or settle direct in USDC. A confidence + staleness gate blocks stale prices. Dry-run here — no funds move.",
+ "But it really executes. Here is a real on-chain settlement on Arc via a Circle Developer-Controlled Wallet — open the arcscan link.",
+ "And a 🇰🇷 KRW1 corridor: for feeds not warm on Arc, the agent refreshes USD/KRW itself via Pyth’s pull model, then settles won at a real on-chain rate.",
+ "Real Pyth pricing, real settlement, live demo, open source. FX-aware settlement — autonomous, per payment. Thanks for watching."
 ];
 let i=0;const $=id=>document.getElementById(id);
 function render(){$('cap').textContent=CAPS[i];$('step').textContent=(i+1)+'/'+CAPS.length;}
