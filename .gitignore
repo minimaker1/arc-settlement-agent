@@ -9,3 +9,6 @@ venv/
 
 # local-only drafts (not published)
 SERIES/
+
+# build artifacts / local dapp (node_modules)
+build/
